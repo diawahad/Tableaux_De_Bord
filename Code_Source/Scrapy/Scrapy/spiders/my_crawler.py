@@ -10,10 +10,14 @@ import json
 class MySpider(scrapy.Spider):
     name = "mycrawler"
     allowed_domains = ["journaldunet.com"]
+    # lire le fichier contenant les liens
     with open('C:/Users/samba/Desktop/info sid/M2/projet_tab_bord/wade_scrapy/wade_scrapy/spiders/lien2759.json', 'r') as file:
         data = json.load(file)
+    # affectée la liste contenant les liens a start_urls
     start_urls = data['lien']
     
+    # la fonction nous permet de recuperer dans chaque lien les informations dont ont besoin
+    # et return un fichier json
     def parse(self, response):
         for quote in response.selector.xpath('//html'):
             yield {

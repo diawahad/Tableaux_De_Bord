@@ -9,6 +9,7 @@ import scrapy
 
 class QuotesSpider(scrapy.Spider):
     name = "projet"
+    # la liste des années de publication d'article sur le E_commerce
     start_urls = [
         'https://www.journaldunet.com/ebusiness/commerce/list/2007-12-1/',
         'https://www.journaldunet.com/ebusiness/commerce/list/2006-11-1/',
@@ -25,15 +26,13 @@ class QuotesSpider(scrapy.Spider):
         'https://www.journaldunet.com/ebusiness/commerce/list/2018-2-1/'
         
     ]
-
+    # la fonction permet de recuperer pour chaque année les liens des articles qui parle du E_commerce
+    # return un fichier json avec les liens des articles
     def parse(self, response):
         for quote in response.selector.xpath('//html'):
             yield {
                 'lien': quote.select('//li/h4/a/@href').extract(),
                 'tittle': quote.select('//li/div/div[@class="grid_left"]/a/@title').extract(),
-                #'data' : quote.select('//div[@class="app_box_3 abs"]/div[@class="content"]/text()').extract(),
-                #'key_word' : quote.select('//ul[@class="app_tags_list"]/li/a/text()').extract(),
-
             }
         next_page = response.selector.xpath('//section[@class="ccmcss_paginator ccmcss_paginator--date"]/div[1]/ul/li/a[@class=""]/@href').extract()
         print(next_page)
