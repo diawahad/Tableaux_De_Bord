@@ -35,29 +35,33 @@ for i in range(len(data)):
     data2[i] = [" ".join(data2[i])]
 
 # on met les introductions des articles dans une liste si vide on remplace par NAN
-stop_words = stopwords.words('french')
-list_phrase = []
-for i in range(len(data2)):
-    if data2[i] == []:
-        list_phrase.append('Nan')
-    else:
-        list_phrase.append(data2[i][0])
-
+def rp_vide(data2):
+    list_phrase = []
+    for i in range(len(data2)):
+        if data2[i] == ['']:
+            list_phrase.append('Nan')
+        else:
+            list_phrase.append(data2[i][0])
+    return list_phrase
+    
+list_phrase=rp_vide(data2)
 #recuperation des Keys words
 # On ramplace les articles n' ayant pas d'intro par Nan pour eviter de perdre la coherence entre les articles et leurs identifiants
 # Sinon on  enleve les mots vides et les mots de taille inferieur a trois
-tab={}
-for i in range(len(list_phrase)):
-    if list_phrase[i]=='Nan':
-        tab[i]=['Nan']
-    else:
-        select=[]
-        for mot in list_phrase[i].split():
-            if (mot not in stop_words and len(mot)>3):
-                select.append(mot)
-        tab[i]=select
-        # dans tab on a pour chaque article l'intro splité par mot et les mots vides enlevés
-
+def stop_word(list_phrase):
+    tab={}
+    for i in range(len(list_phrase)):
+        if list_phrase[i]=='Nan':
+            tab[i]=['Nan']
+        else:
+            select=[]
+            for mot in list_phrase[i].split():
+                if (mot not in stop_words and len(mot)>3):
+                    select.append(mot)
+            tab[i]=select
+    return tab
+    # dans tab on a pour chaque article l'intro splité par mot et les mots vides enlevés
+tab = stop_word(list_phrase)
 # Enfin de pouvoir definir les mots cles on a predit les entités nommées pour chaque mots
 # avec le model StanFord :StanfordPOSTagger
 jar = 'C:/Users/samba/Desktop/info sid/M2/projet_tab_bord/stanford-postagger-full-2018-02-27/stanford-postagger-3.9.1.jar'
@@ -65,28 +69,30 @@ model = 'C:/Users/samba/Desktop/info sid/M2/projet_tab_bord/stanford-postagger-f
 java_path = "C:/Program Files/Java/jdk-9.0.1/bin/java.exe"
 os.environ['JAVAHOME'] = java_path
 pos_tagger = StanfordPOSTagger(model, jar, encoding='utf8')
-words = {}
-tab2 = {}
-for i in range(len(tab)):
-   select = []
-   # predit les endités nommées
-   pos = pos_tagger.tag(tab[i])
-   stops_verb = ['NC', 'N', 'NPP']
-   # on recupere les mots ayant comme entités nommées Nom Commun,Nom ou Nom Propre
-   for x in pos:
-       if x[1] in stops_verb:
-           select.append(x[0])
-   words = {}
-   for word in set(select):
-       # on compte la frequence du mot dans l'intoduction de l'article
-       count = 0  
-       for j in range(len(select)):
-           if word == select[j]:
-               count += 1
-       words[word]= count
-       # on ordonne et on recupere les 2 mots ayant les plus frequents dqns l'introduction de l'article
-   tab2[i] = (sorted( words.items(), key = lambda x : -x[1]))[:2]
-tab2
+def key_word(tab):
+    words = {}
+    tab2 = {}
+    for i in range(len(tab)):
+       select = []
+       # predit les endités nommées
+       pos = pos_tagger.tag(tab[i])
+       stops_verb = ['NC', 'N', 'NPP']
+       # on recupere les mots ayant comme entités nommées Nom Commun,Nom ou Nom Propre
+       for x in pos:
+           if x[1] in stops_verb:
+               select.append(x[0])
+       words = {}
+       for word in set(select):
+           # on compte la frequence du mot dans l'intoduction de l'article
+           count = 0  
+           for j in range(len(select)):
+               if word == select[j]:
+                   count += 1
+           words[word]= count
+           # on ordonne et on recupere les 2 mots ayant les plus frequents dqns l'introduction de l'article
+       tab2[i] = (sorted( words.items(), key = lambda x : -x[1]))[:2]
+    return(tab2)
+tab2=key_word(tab)
 # tab2 c est un dictionnaire avec 2 mots clés et leurs fequences par article
 
 #cree un fichier contenant les mots cles
@@ -168,19 +174,7 @@ for x in sorted(set(tab.keys())):
 
 #liste des nombres d'articles selon leurpolarite        
 liste_polarite = [143, 872, 1744] 
-x1 = [1, 2, 3]           
-plt.bar(x1,liste_polarite)           
-plt.title("La répartition des articles selon la polarité") 
-plt.xticks(x1, ('Negatif', 'Positif', 'Neutre'))
 x = ['2007', '2008', '2009', '2010', '2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018']
-plt.subplot(212)
-plt.plot(sorted(x), hist2_pos)
-plt.plot(sorted(x), hist2_neg, 'r')
-plt.title("L'évolution de la polarité des articles")
-plt.xlabel("Année")
-plt.ylabel("Nombre d'article")
-plt.show()
-
 
 mat_polarite = pd.DataFrame(hist2_neg)
 mat_polarite[1] = hist2_pos
